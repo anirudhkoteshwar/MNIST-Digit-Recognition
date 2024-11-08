@@ -18,9 +18,8 @@ This project implements a web-based handwritten digit recognition system using a
 
 1. Clone the repository:
 ```
-bash
-git clone https://github.com/yourusername/mnist-ensemble.git
-cd mnist-ensemble
+git clone https://github.com/anirudhkoteshwar/MNIST-Digit-Recognition
+cd MNIST-Digit-Recognition
 ```
 
 2. Set up a Python virtual environment:
