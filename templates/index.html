@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Digit Recognition</title>
+    <style>
+        .pixel-grid {
+            display: grid;
+            grid-template-columns: repeat(28, 15px);
+            gap: 1px;
+            background-color: #ccc;
+            padding: 1px;
+            width: fit-content;
+            border: 2px solid #333;
+            user-select: none;
+        }
+
+        .pixel {
+            width: 15px;
+            height: 15px;
+            background-color: white;
+            border: none;
+            padding: 0;
+            cursor: pointer;
+            transition: background-color 0.1s;
+        }
+
+        .pixel.active {
+            background-color: black;
+        }
+
+        #controls {
+            margin: 20px 0;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            padding: 20px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 0 5px;
+        }
+
+        #result {
+            margin-top: 20px;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Draw a digit (0-9)</h1>
+        <div>Click or drag to draw. Hold and drag to draw continuously.</div>
+        <div id="pixelGrid" class="pixel-grid"></div>
+        <div id="controls">
+            <button onclick="clearGrid()">Clear</button>
+            <button onclick="predict()">Predict</button>
+        </div>
+        <div id="result"></div>
+    </div>
+
+    <script>
+        const grid = document.getElementById('pixelGrid');
+        let isDrawing = false;
+        let lastTouchedPixel = null;
+
+        // Create 28x28 grid
+        for (let i = 0; i < 28 * 28; i++) {
+            const pixel = document.createElement('div');
+            pixel.className = 'pixel';
+            grid.appendChild(pixel);
+        }
+
+        // Mouse events for drawing
+        grid.addEventListener('mousedown', startDrawing);
+        grid.addEventListener('mouseover', draw);
+        document.addEventListener('mouseup', stopDrawing);
+        
+        // Touch events for mobile support
+        grid.addEventListener('touchstart', handleTouch);
+        grid.addEventListener('touchmove', handleTouch);
+        grid.addEventListener('touchend', stopDrawing);
+
+        function startDrawing(e) {
+            isDrawing = true;
+            draw(e); // Draw the first pixel immediately
+        }
+
+        function draw(e) {
+            if (!isDrawing) return;
+            
+            const pixel = e.target;
+            if (pixel.classList.contains('pixel') && pixel !== lastTouchedPixel) {
+                pixel.classList.add('active');
+                lastTouchedPixel = pixel;
+            }
+        }
+
+        function handleTouch(e) {
+            e.preventDefault(); // Prevent scrolling while drawing
+            
+            const touch = e.touches[0];
+            const pixel = document.elementFromPoint(touch.clientX, touch.clientY);
+            
+            if (e.type === 'touchstart') {
+                isDrawing = true;
+            }
+            
+            if (isDrawing && pixel && pixel.classList.contains('pixel')) {
+                pixel.classList.add('active');
+            }
+        }
+
+        function stopDrawing() {
+            isDrawing = false;
+            lastTouchedPixel = null;
+        }
+
+        function clearGrid() {
+            document.querySelectorAll('.pixel').forEach(pixel => {
+                pixel.classList.remove('active');
+            });
+            document.getElementById('result').innerHTML = '';
+        }
+
+        function predict() {
+            console.log('Starting prediction process...');
+            
+            // Create a temporary canvas to convert grid to image
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = 28;
+            tempCanvas.height = 28;
+            const ctx = tempCanvas.getContext('2d');
+            
+            // Fill with white background
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, 28, 28);
+            
+            // Draw black pixels
+            ctx.fillStyle = 'black';
+            const pixels = document.querySelectorAll('.pixel');
+            pixels.forEach((pixel, index) => {
+                if (pixel.classList.contains('active')) {
+                    const x = index % 28;
+                    const y = Math.floor(index / 28);
+                    ctx.fillRect(x, y, 1, 1);
+                }
+            });
+
+            const imageData = tempCanvas.toDataURL('image/png');
+            console.log('Grid converted to PNG');
+            
+            fetch('/predict', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({image: imageData}),
+            })
+            .then(response => {
+                console.log('Received response from server');
+                return response.json();
+            })
+            .then(data => {
+                console.log('Prediction result:', data);
+                document.getElementById('result').innerHTML = `
+                    <h2>Predicted digit: ${data.prediction} (${data.confidence}% confident)</h2>
+                    <p>Individual model predictions: ${data.individual_predictions.join(', ')}</p>
+                `;
+            })
+            .catch(error => {
+                console.error('Error during prediction:', error);
+                document.getElementById('result').innerHTML = 
+                    `<h2 style="color: red;">Error during prediction</h2>`;
+            });
+        }
+    </script>
+</body>
+</html>
