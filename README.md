@@ -27,7 +27,6 @@ cd mnist-ensemble
 
 ### For Linux/macOS:
 ```
-bash
 Create virtual environment ->
 python3 -m venv venv
 
@@ -37,7 +36,6 @@ source venv/bin/activate
 
 ### For Windows:
 ```
-bash
 Create virtual environment ->
 python -m venv venv
 
@@ -69,16 +67,18 @@ python app.py
 4. Use the "Clear" button to reset the canvas
 
 ## Project Structure
+```
 MNIST-Digit-Recognition/
-├── app.py # Flask application
-├── train.py # Model training script
-├── requirements.txt # Python dependencies
-├── nn1_model.pth # Trained model 1
-├── nn2_model.pth # Trained model 2
-├── bpnn_model.pth # Trained model 3
-├── scaler.pth # Scaler parameters
+├── app.py                # Flask application
+├── train.py              # Model training script
+├── requirements.txt      # Python dependencies
+├── nn1_model.pth        # Trained model 1
+├── nn2_model.pth        # Trained model 2
+├── bpnn_model.pth       # Trained model 3
+├── scaler.pth           # Scaler parameters
 └── templates/
-    └── index.html # Web interface
+    └── index.html       # Web interface
+```
 
 
 ## Models
@@ -104,8 +104,3 @@ app.run(port=5001)
 
 3. **Model loading errors**: Ensure all model files (nn1_model.pth, nn2_model.pth, bpnn_model.pth, scaler.pth) are in the correct directory
 
-## Contributing
-Feel free to submit issues and enhancement requests!
-
-## License
-[MIT License](LICENSE)
